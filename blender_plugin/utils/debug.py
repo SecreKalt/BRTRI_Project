@@ -47,6 +47,11 @@ class DebugUtils:
         bpy.context.scene.brtri_error_message = message
 
     @classmethod
+    def log_data_processing_step(cls, step, data):
+        if cls.logger:
+            cls.logger.debug(f"Step: {step}, Data: {data}")
+
+    @classmethod
     def cleanup(cls):
         if cls.logger:
             for handler in cls.logger.handlers[:]:

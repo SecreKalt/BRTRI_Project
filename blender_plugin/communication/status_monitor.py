@@ -1,5 +1,6 @@
 import bpy
 import time
+import threading
 from ..operators.error_handler import BRTRI_ErrorHandler
 
 class StatusMonitor:
