@@ -21,29 +21,35 @@ class BRTRIBridgeClient:
         self.last_frame_time = time.time()
         self.target_fps = 30
         self.frame_interval = 1.0 / self.target_fps
+        self.retry_count = 0
+        self.max_retries = 5
         
     def start(self):
-        try:
-            self.socket = self.context.socket(zmq.SUB)
-            # Add high water mark to prevent memory overflow
-            self.socket.set_hwm(1000)
-            # Add TCP keep alive to handle network interruptions
-            self.socket.setsockopt(zmq.TCP_KEEPALIVE, 1)
-            self.socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 300)
-            # Use CONFLATE to only get latest update
-            self.socket.setsockopt(zmq.CONFLATE, 1)
-            self.socket.connect(f"tcp://{self.host}:{self.port}")
-            self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
-            self.running = True
-            self.connection_thread = threading.Thread(
-                target=self._receive_loop, 
-                daemon=True  # Make thread daemon for clean shutdown
-            )
-            self.connection_thread.start()
-            return True
-        except Exception as e:
-            BRTRI_ErrorHandler.log_error(f"Connection failed: {str(e)}")
-            return False
+        while self.retry_count < self.max_retries:
+            try:
+                self.socket = self.context.socket(zmq.SUB)
+                # Add high water mark to prevent memory overflow
+                self.socket.set_hwm(1000)
+                # Add TCP keep alive to handle network interruptions
+                self.socket.setsockopt(zmq.TCP_KEEPALIVE, 1)
+                self.socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 300)
+                # Use CONFLATE to only get latest update
+                self.socket.setsockopt(zmq.CONFLATE, 1)
+                self.socket.connect(f"tcp://{self.host}:{self.port}")
+                self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
+                self.running = True
+                self.connection_thread = threading.Thread(
+                    target=self._receive_loop, 
+                    daemon=True  # Make thread daemon for clean shutdown
+                )
+                self.connection_thread.start()
+                return True
+            except Exception as e:
+                self.retry_count += 1
+                BRTRI_ErrorHandler.log_error(f"Connection failed (attempt {self.retry_count}): {str(e)}")
+                time.sleep(2 ** self.retry_count)  # Exponential backoff
+        BRTRI_ErrorHandler.log_error("Max retries reached. Failed to establish connection.")
+        return False
             
     def stop(self):
         self.running = False
@@ -74,14 +80,17 @@ class BRTRIBridgeClient:
                             self.last_frame_time = current_time
                             
             except Exception as e:
-                BRTRI_ErrorHandler.log_error(f"Reception error: {str(e)}")
+                BRTRI_ErrorHandler.log_error(f"Reception error in _receive_loop: {str(e)}")
                 
     def _process_frame_buffer(self):
-        if len(self.frame_buffer) >= 2:
-            # Average last few frames for smoother visualization
-            points_list = [frame['points'] for frame in self.frame_buffer]
-            averaged_points = np.mean(points_list, axis=0)
-            self.process_data({'points': averaged_points.tolist()})
+        try:
+            if len(self.frame_buffer) >= 2:
+                # Average last few frames for smoother visualization
+                points_list = [frame['points'] for frame in self.frame_buffer]
+                averaged_points = np.mean(points_list, axis=0)
+                self.process_data({'points': averaged_points.tolist()})
+        except Exception as e:
+            BRTRI_ErrorHandler.log_error(f"Processing error in _process_frame_buffer: {str(e)}")
                 
     def process_data(self, data):
         from ..operators.visualizer import BRTRI_OT_UpdateMesh
