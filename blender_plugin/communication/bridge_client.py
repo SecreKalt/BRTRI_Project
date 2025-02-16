@@ -46,9 +46,9 @@ class BRTRIBridgeClient:
                 return True
             except Exception as e:
                 self.retry_count += 1
-                BRTRI_ErrorHandler.log_error(f"Connection failed (attempt {self.retry_count}): {str(e)}")
+                BRTRI_ErrorHandler.log_error(f"Connection failed (attempt {self.retry_count}): {str(e)}", context="start")
                 time.sleep(2 ** self.retry_count)  # Exponential backoff
-        BRTRI_ErrorHandler.log_error("Max retries reached. Failed to establish connection.")
+        BRTRI_ErrorHandler.log_error("Max retries reached. Failed to establish connection.", context="start")
         return False
             
     def stop(self):
@@ -80,7 +80,7 @@ class BRTRIBridgeClient:
                             self.last_frame_time = current_time
                             
             except Exception as e:
-                BRTRI_ErrorHandler.log_error(f"Reception error in _receive_loop: {str(e)}")
+                BRTRI_ErrorHandler.log_error(f"Reception error in _receive_loop: {str(e)}", context="_receive_loop")
                 
     def _process_frame_buffer(self):
         try:
@@ -90,7 +90,7 @@ class BRTRIBridgeClient:
                 averaged_points = np.mean(points_list, axis=0)
                 self.process_data({'points': averaged_points.tolist()})
         except Exception as e:
-            BRTRI_ErrorHandler.log_error(f"Processing error in _process_frame_buffer: {str(e)}")
+            BRTRI_ErrorHandler.log_error(f"Processing error in _process_frame_buffer: {str(e)}", context="_process_frame_buffer")
                 
     def process_data(self, data):
         from ..operators.visualizer import BRTRI_OT_UpdateMesh
