@@ -9,6 +9,8 @@ use crate::{
     config::Config,
     processing::{CloudFilter, CloudOptimizer, ProcessedCloud},
     error::Result,
+    protocols::{iOSProtocol, BlenderProtocol},
+    core::monitor::Monitor,
 };
 
 const SHUTDOWN_TIMEOUT: u64 = 5;
@@ -73,6 +75,11 @@ async fn main() -> Result<()> {
     // Setup ZeroMQ sockets
     let ios_receiver = zeromq::SubSocket::new();
     let blender_sender = zeromq::PubSocket::new();
+
+    // Initialize protocols
+    let monitor = Arc::new(Monitor::new());
+    let mut ios_protocol = iOSProtocol::new(config.network.ios_port, monitor.clone()).await?;
+    let mut blender_protocol = BlenderProtocol::new(blender_sender, monitor.clone());
 
     // Start processing pipeline
     let pipeline_handle = {
