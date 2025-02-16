@@ -2,6 +2,7 @@ use tokio::net::{TcpListener, TcpStream};
 use zeromq::{Socket, SocketRecv, SocketSend, PullSocket};
 use std::sync::Arc;
 use crate::core::monitor::Monitor;
+use tracing::{error, info};
 
 const LIDAR_PACKET_HEADER: [u8; 4] = [0x4C, 0x49, 0x44, 0x52]; // "LIDR"
 const MAX_PACKET_SIZE: usize = 1024 * 1024; // 1MB
@@ -59,5 +60,14 @@ impl iOSProtocol {
         }
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         Ok(())
+    }
+
+    pub async fn handle_buffer_overflow(&self) {
+        self.monitor.record_drop();
+        error!("Buffer overflow occurred while receiving data from iOS socket");
+    }
+
+    pub async fn log_connection_error(&self, error_message: &str) {
+        error!("Connection error: {}", error_message);
     }
 }

@@ -6,6 +6,7 @@ pub struct BufferMetrics {
     operations: AtomicUsize,
     drops: AtomicUsize,
     latency_ns: AtomicUsize,
+    overflows: AtomicUsize,
 }
 
 pub struct LockFreeBuffer<T> {
@@ -30,6 +31,7 @@ impl<T> LockFreeBuffer<T> {
                 operations: AtomicUsize::new(0),
                 drops: AtomicUsize::new(0),
                 latency_ns: AtomicUsize::new(0),
+                overflows: AtomicUsize::new(0),
             },
         }
     }
@@ -84,12 +86,21 @@ impl<T> LockFreeBuffer<T> {
         self.metrics.operations.fetch_add(1, Ordering::Relaxed);
     }
 
-    pub fn get_metrics(&self) -> (usize, usize, Duration) {
+    pub fn get_metrics(&self) -> (usize, usize, Duration, usize) {
         (
             self.metrics.operations.load(Ordering::Relaxed),
             self.metrics.drops.load(Ordering::Relaxed),
-            Duration::from_nanos(self.metrics.latency_ns.load(Ordering::Relaxed) as u64)
+            Duration::from_nanos(self.metrics.latency_ns.load(Ordering::Relaxed) as u64),
+            self.metrics.overflows.load(Ordering::Relaxed),
         )
+    }
+
+    pub fn handle_overflow(&self) {
+        self.metrics.overflows.fetch_add(1, Ordering::Relaxed);
+    }
+
+    pub fn handle_data_loss(&self) {
+        self.metrics.drops.fetch_add(1, Ordering::Relaxed);
     }
 }
 

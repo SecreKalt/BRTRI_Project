@@ -2,6 +2,7 @@ use zeromq::{Socket, SocketSend};
 use std::time::Instant;
 use crate::core::monitor::Monitor;
 use std::sync::Arc;
+use tracing::{error, info};
 
 const POINT_CLOUD_HEADER: [u8; 4] = [0x50, 0x43, 0x4C, 0x44]; // "PCLD"
 
@@ -30,7 +31,11 @@ impl BlenderProtocol {
         frame.extend_from_slice(&(data.len() as u32).to_le_bytes());
         frame.extend_from_slice(&data);
         
-        self.socket.send_bytes(&frame).await?;
+        if let Err(e) = self.socket.send_bytes(&frame).await {
+            self.monitor.record_drop();
+            error!("Failed to send data to Blender socket: {}", e);
+            return Err(e.into());
+        }
         
         self.monitor.record_frame(start.elapsed());
         self.frame_counter += 1;
