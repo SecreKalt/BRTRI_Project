@@ -15,32 +15,40 @@ class DebugUtils:
         cls.logger.addHandler(handler)
 
     @classmethod
-    def log_debug(cls, message):
+    def log_debug(cls, message, context=None):
         if cls.logger:
+            if context:
+                message = f"{context} - {message}"
             cls.logger.debug(message)
         
         # Update UI debug message
         bpy.context.scene.brtri_debug_message = message
 
     @classmethod
-    def log_info(cls, message):
+    def log_info(cls, message, context=None):
         if cls.logger:
+            if context:
+                message = f"{context} - {message}"
             cls.logger.info(message)
         
         # Update UI info message
         bpy.context.scene.brtri_info_message = message
 
     @classmethod
-    def log_warning(cls, message):
+    def log_warning(cls, message, context=None):
         if cls.logger:
+            if context:
+                message = f"{context} - {message}"
             cls.logger.warning(message)
         
         # Update UI warning message
         bpy.context.scene.brtri_warning_message = message
 
     @classmethod
-    def log_error(cls, message):
+    def log_error(cls, message, context=None):
         if cls.logger:
+            if context:
+                message = f"{context} - {message}"
             cls.logger.error(message)
         
         # Update UI error message

@@ -5,6 +5,7 @@ from pathlib import Path
 from .operators.receiver import BRTRI_OT_StartReceiver, BRTRI_OT_StopReceiver
 from .operators.visualizer import BRTRI_OT_UpdateMesh
 from .operators.error_handler import BRTRI_ErrorHandler
+from .communication.status_monitor import status_monitor
 
 bl_info = {
     "name": "BRTRI LiDAR Integration",
@@ -88,6 +89,9 @@ def register():
     
     # Initialize error handler
     BRTRI_ErrorHandler.initialize()
+    
+    # Initialize status monitor
+    status_monitor.start_monitoring()
 
 def unregister():
     # Unregister classes
@@ -99,6 +103,9 @@ def unregister():
     
     # Cleanup error handler
     BRTRI_ErrorHandler.cleanup()
+    
+    # Stop status monitor
+    status_monitor.stop_monitoring()
 
 if __name__ == "__main__":
     register()

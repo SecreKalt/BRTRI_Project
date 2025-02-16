@@ -17,8 +17,10 @@ class BRTRI_ErrorHandler:
         cls.logger.addHandler(handler)
     
     @classmethod
-    def log_error(cls, message):
+    def log_error(cls, message, context=None):
         if cls.logger:
+            if context:
+                message = f"{context} - {message}"
             cls.logger.error(message)
         
         # Update UI error message
