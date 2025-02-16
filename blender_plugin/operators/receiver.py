@@ -19,7 +19,7 @@ class BRTRI_OT_StartReceiver(bpy.types.Operator):
                 return {'FINISHED'}
             return {'CANCELLED'}
         except Exception as e:
-            BRTRI_ErrorHandler.log_error(str(e))
+            BRTRI_ErrorHandler.log_error(str(e), context="BRTRI_OT_StartReceiver.execute")
             return {'CANCELLED'}
 
 class BRTRI_OT_StopReceiver(bpy.types.Operator):
@@ -35,5 +35,5 @@ class BRTRI_OT_StopReceiver(bpy.types.Operator):
                 status_monitor.stop_monitoring()
             return {'FINISHED'}
         except Exception as e:
-            BRTRI_ErrorHandler.log_error(str(e))
+            BRTRI_ErrorHandler.log_error(str(e), context="BRTRI_OT_StopReceiver.execute")
             return {'CANCELLED'}

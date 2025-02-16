@@ -26,20 +26,20 @@ class StatusMonitor:
             current_time = time.time()
             if self.connection_status and (current_time - self.last_data_time > 5):
                 self.connection_status = False
-                BRTRI_ErrorHandler.log_error("Connection lost")
+                BRTRI_ErrorHandler.log_error("Connection lost", context="StatusMonitor._monitor_loop")
             time.sleep(1)
 
     def update_connection_status(self, status):
         self.connection_status = status
         if status:
             self.last_data_time = time.time()
-            BRTRI_ErrorHandler.log_error("Connection status changed: Connected")
+            BRTRI_ErrorHandler.log_error("Connection status changed: Connected", context="StatusMonitor.update_connection_status")
         else:
-            BRTRI_ErrorHandler.log_error("Connection status changed: Disconnected")
+            BRTRI_ErrorHandler.log_error("Connection status changed: Disconnected", context="StatusMonitor.update_connection_status")
 
     def update_data_received(self):
         self.data_received = True
         self.last_data_time = time.time()
-        BRTRI_ErrorHandler.log_error("Data received")
+        BRTRI_ErrorHandler.log_error("Data received", context="StatusMonitor.update_data_received")
 
 status_monitor = StatusMonitor()
