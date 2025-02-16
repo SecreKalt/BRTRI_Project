@@ -24,6 +24,7 @@ if str(plugin_dir) not in sys.path:
     sys.path.append(str(plugin_dir))
 
 # Import plugin modules
+from .operators import receiver, visualizer, error_handler
 
 # Panel class for UI
 class BRTRI_PT_MainPanel(bpy.types.Panel):

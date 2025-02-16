@@ -30,7 +30,10 @@ impl BlenderProtocol {
         frame.extend_from_slice(&(data.len() as u32).to_le_bytes());
         frame.extend_from_slice(&data);
         
-        self.socket.send_bytes(&frame).await?;
+        if let Err(e) = self.socket.send_bytes(&frame).await {
+            self.monitor.record_drop();
+            return Err(e.into());
+        }
         
         self.monitor.record_frame(start.elapsed());
         self.frame_counter += 1;

@@ -64,4 +64,12 @@ impl Monitor {
         self.dropped_frames.store(0, Ordering::Relaxed);
         self.last_latency.store(0, Ordering::Relaxed);
     }
+
+    pub fn track_system_metrics(&self) {
+        // Implement system metrics tracking
+    }
+
+    pub fn track_performance(&self) {
+        // Implement performance tracking
+    }
 }
